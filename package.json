@@ -1,0 +1,37 @@
+{
+	"name": "proto-node-client-generator",
+	"version": "0.0.1",
+	"description": "",
+	"main": "app.js",
+	"scripts": {
+		"test": "jest"
+	},
+	"dependencies": {
+		"protobufjs": "^6.8.6",
+		"ts-node": "^5.0.1",
+		"prettier": "^1.11.1"
+	},
+	"devDependencies": {
+		"typescript": "^2.8.1",
+		"ts-jest": "^22.4.2",
+		"@types/jest": "^22.2.2",
+		"@types/protobufjs": "^6.0.0",
+		"@types/prettier": "^1.10.0"
+	},
+	"author": "",
+	"license": "MIT",
+	"jest": {
+		"transform": {
+			"^.+\\.tsx?$": "ts-jest"
+		},
+		"testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+		"moduleFileExtensions": [
+			"ts",
+			"tsx",
+			"js",
+			"jsx",
+			"json",
+			"node"
+		]
+	}
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    "sourceMap": true,
+    // "checkJs": true,
+    // "allowJs": true,
+    "experimentalDecorators": true,
+    "lib": ["es2017", "esnext.asynciterable", "dom"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["**/node_modules/grpc/index.d.ts"]
+}

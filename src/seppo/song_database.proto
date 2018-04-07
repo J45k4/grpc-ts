@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package SeppoService;
+
+message SongDatabase {
+	uint32 id = 1;
+	string name = 2;
+	uint64 version = 3;
+}
+
+// Queries
+
+message SearchSongDatabasesRequest {
+	uint32 offset = 1;
+	uint32 limit = 2;
+	string searchWord = 3;
+	uint32 variationId = 4;
+}
+
+message SearchSongDatabasesResponse {
+	repeated SongDatabase songDatabases = 1;
+	uint32 maxSongDatabases = 2;
+}
+
+message FetchSongDatabaseByIdRequest {
+	repeated uint32 songDatabaseIds = 1;
+}
+
+message FetchSongDatabaseByIdResponse {
+	repeated SongDatabase songDatabases = 1;
+}
+
+// Mutation
+
+message CreateSongDatabaseRequest {
+	string name = 1;
+}
+
+message CreateSongDatabaseResponse {
+	SongDatabase songDatabase = 1;
+}
+
+message UpdateSongDatabaseRequest {
+	uint32 songDatabaseId = 1;
+	string name = 2;
+	repeated uint32 addTagIds = 3;
+	repeated uint32 removeTagIds = 4;
+}
+
+message UpdateSongDatabaseResponse {
+	SongDatabase songDatabase = 1;
+	bool success = 2;
+}
+
+message RemoveSongDatabaseRequest {
+	uint32 songDatabaseId = 1;
+}
+
+message RemoveSongDatabaseResponse {
+	bool success = 1;
+}
