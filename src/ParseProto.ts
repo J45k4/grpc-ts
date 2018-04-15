@@ -1,38 +1,56 @@
 import { load, Root, Namespace, Type, Service, Field, Enum } from "protobufjs";
 import { resolve } from "path";
-import { TsInterface } from "./TsInterface";
-import { TsClassDeclaration } from "./TsClassDeclaration";
-import { ITsType } from "./TsType";
-import { isFieldBasicType } from "./TypeParser";
-import { TsField } from "./TsField";
-import { TsFieldType } from "./TsFieldType";
+import { writeFileSync, appendFileSync, writeFile } from "fs";
 import {
-	TsBoolean,
-	TsNumber,
-	TsString,
-	TsBooleanList,
-	TsNumberList,
-	TsStringList
-} from "./BasicTypes";
-import { TsFile } from "./TsFile";
-import { writeFileSync } from "fs";
-import { TsEnum, TsEnumField } from "./TsEnum";
-import { TsMethodDeclaration } from "./TsMethodDeclaration";
+	printRequestTypeResolver,
+	RequestTypeResolverField,
+	RequestTypeResolverArgs
+} from "./RequestResolversGeneration";
+import { format } from "prettier";
+import {
+	ResponseTypeResolverArgs,
+	ResponseTypeResolverField,
+	printResponseTypeResolver
+} from "./ResponseResolversGeneration";
+import {
+	InterfaceType,
+	InterfaceField,
+	printInterface,
+	EnumType,
+	EnumField,
+	printEnum
+} from "./TypesGeneration";
+import {
+	ClassDeclarationArgs,
+	printClassDeclarationMethod,
+	ClassDeclarationMethod,
+	printClassDeclaration
+} from "./ClientDeclarationGenerator";
+import { TsEnumField } from "./TsEnum";
+import {
+	ServiceClientArgs,
+	ClientMethodArgs,
+	printServiceClient
+} from "./ClientGeneration";
+import {
+	printRequestEnumResolver,
+	printResponseEnumResolver
+} from "./PrintEnumResolvers";
+import {
+	PrintEnumObjectArgs,
+	EnumObjectField,
+	printEnumObject
+} from "./printEnumObject";
 
-export const getNamespace = (root: Root): Namespace => {
-	let namespace;
-	Object.keys(root).forEach(key => {
-		const field = root[key];
-		if (field instanceof Namespace) {
-			namespace = field;
-		}
-	});
-	return namespace;
+type GetTypesContainer = {
+	resolvers: string;
+	types: string;
+	jsEnums: string;
 };
 
 export const getTypes = (
+	container: GetTypesContainer,
 	namespace,
-	types: Map<string, ITsType>,
 	type: Type,
 	parentType?: Type
 ) => {
@@ -40,221 +58,237 @@ export const getTypes = (
 	if (type) {
 		if (type instanceof Type) {
 			type.nestedArray.forEach(newType => {
-				getTypes(namespace, types, newType as Type, type);
+				getTypes(container, namespace, newType as Type, type);
 			});
 
-			let newInterface = types.get(type.name) as TsInterface;
-			if (newInterface) {
-				return;
-			}
+			const requestResolver: RequestTypeResolverArgs = {
+				requestType: newTypeName,
+				fields: []
+			};
 
-			newInterface = new TsInterface();
-			newInterface.exported = true;
-			newInterface.name = newTypeName;
+			const responseResolver: ResponseTypeResolverArgs = {
+				responseType: newTypeName,
+				fields: []
+			};
 
-			types.set(type.name, newInterface);
+			const interfaceType: InterfaceType = {
+				interfaceName: newTypeName,
+				interfaceFields: []
+			};
 
 			type.fieldsArray.forEach(field => {
-				const isBasicType = isFieldBasicType(field.type);
+				let fieldTypeName = field.type;
+				if (type.nested && type.nested[field.type]) {
+					fieldTypeName = type.name + field.type;
+				}
 
-				const tsField = new TsField();
-				tsField.fieldName = field.name;
+				const requestField: RequestTypeResolverField = {
+					fieldName: field.name,
+					typeName: field.type,
+					isListType: field.repeated
+				};
 
-				tsField.fieldType;
+				const responseField: ResponseTypeResolverField = {
+					fieldName: field.name,
+					typeName: field.type,
+					isListType: field.repeated
+				};
+
+				const interfaceField: InterfaceField = {
+					fieldName: field.name,
+					isListType: field.repeated,
+					required: field.required
+				};
 
 				switch (field.type) {
 					case "bool":
-						if (field.repeated) {
-							tsField.fieldType = TsBooleanList;
-						} else {
-							tsField.fieldType = TsBoolean;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "boolean";
 						break;
 					case "uint64":
-						if (field.repeated) {
-							tsField.fieldType = TsNumberList;
-						} else {
-							tsField.fieldType = TsNumber;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "number";
 						break;
 					case "uint32":
-						if (field.repeated) {
-							tsField.fieldType = TsNumberList;
-						} else {
-							tsField.fieldType = TsNumber;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "number";
 						break;
 					case "int64":
-						if (field.repeated) {
-							tsField.fieldType = TsNumberList;
-						} else {
-							tsField.fieldType = TsNumber;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "number";
 						break;
 					case "int":
-						if (field.repeated) {
-							tsField.fieldType = TsNumberList;
-						} else {
-							tsField.fieldType = TsNumber;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "number";
 						break;
 					case "bytes":
-						if (field.repeated) {
-							tsField.fieldType = TsStringList;
-						} else {
-							tsField.fieldType = TsString;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "string";
 						break;
 					case "string":
-						if (field.repeated) {
-							tsField.fieldType = TsStringList;
-						} else {
-							tsField.fieldType = TsString;
-						}
+						requestField.isBasicType = true;
+						responseField.isBasicType = true;
+						interfaceField.fieldType = "string";
 						break;
 					default:
-						const tsFieldType = new TsFieldType();
-						tsFieldType.isBasicType = false;
-						tsFieldType.isListType = field.repeated;
-						tsField.fieldType = tsFieldType;
-
-						let fieldType = types.get(field.type);
-						if (!fieldType) {
-							const parentType = namespace[field.type];
-							getTypes(namespace, types, parentType);
-							fieldType = types.get(field.type);
-						}
-						tsFieldType.customFieldType = fieldType;
-
-						if (!tsFieldType.customFieldType) {
-							console.log("customFieldType null", tsFieldType);
-						}
-
+						requestField.isBasicType = false;
+						responseField.isBasicType = false;
+						interfaceField.fieldType = fieldTypeName;
 						break;
 				}
+				requestResolver.fields.push(requestField);
+				responseResolver.fields.push(responseField);
+				interfaceType.interfaceFields.push(interfaceField);
+			});
 
-				newInterface.fields.push(tsField);
+			container.resolvers += format(
+				printRequestTypeResolver(requestResolver),
+				{
+					useTabs: true,
+					tabWidth: 4
+				}
+			);
+
+			container.resolvers += format(
+				printResponseTypeResolver(responseResolver),
+				{
+					useTabs: true,
+					tabWidth: 4
+				}
+			);
+
+			container.types += format(printInterface(interfaceType), {
+				useTabs: true,
+				tabWidth: 4
 			});
 		}
 
 		if (type instanceof Enum) {
-			const newEnum = new TsEnum();
-			newEnum.name = type.name;
-			newEnum.exported = true;
+			const enumType: EnumType = {
+				enumName: newTypeName,
+				enumFields: []
+			};
+
+			const enumObject: PrintEnumObjectArgs = {
+				name: newTypeName,
+				fields: []
+			};
+
+			container.resolvers += printRequestEnumResolver(type.name);
+			container.resolvers += printResponseEnumResolver(type.name);
+
+			const responseResolver: ResponseTypeResolverArgs = {
+				responseType: newTypeName,
+				fields: []
+			};
 
 			Object.keys(type.values).forEach(key => {
 				const enumKey = key;
 				const enumValue = type.values[key];
 
-				const newEnumField = new TsEnumField();
-				newEnumField.fieldName = enumKey;
-				newEnumField.fieldValueName = enumValue.toString();
-				newEnum.fields.push(newEnumField);
+				const enumField: EnumField = {
+					fieldName: enumKey,
+					fieldValue: enumValue
+				};
+
+				enumType.enumFields.push(enumField);
+
+				const enumObjectField: EnumObjectField = {
+					fieldName: enumKey,
+					fieldValue: enumValue
+				};
+
+				enumObject.fields.push(enumObjectField);
 			});
 
-			types.set(type.name, newEnum);
+			const r = printEnum(enumType);
+
+			container.types += r + "\n";
+
+			container.jsEnums += printEnumObject(enumObject);
 		}
 	}
 };
 
-export const ParseProto = (filepath: string) =>
-	new Promise((resolve, reject) => {
-		load(filepath, (err, root) => {
-			if (err) {
-				return reject(err);
-			}
+export const parseProto = (root: Root) => {
+	const getTypesContainer: GetTypesContainer = {
+		types: "",
+		resolvers: "",
+		jsEnums: ""
+	};
 
-			const types: Map<string, ITsType> = new Map();
-			const serviceClass: TsClassDeclaration = new TsClassDeclaration();
-			serviceClass.exported = true;
+	let clientDeclaration = "";
+	let clientImplementation = "";
 
-			const namespace: Namespace = root.nestedArray[0] as Namespace;
-			namespace.nestedArray.forEach(nestedNamespaceField => {
-				if (
-					nestedNamespaceField instanceof Type ||
-					nestedNamespaceField instanceof Enum
-				) {
-					getTypes(namespace, types, nestedNamespaceField as Type);
+	const namespace: Namespace = root.nestedArray[0] as Namespace;
+	namespace.nestedArray.forEach(nestedNamespaceField => {
+		if (
+			nestedNamespaceField instanceof Type ||
+			nestedNamespaceField instanceof Enum
+		) {
+			getTypes(
+				getTypesContainer,
+				namespace,
+				nestedNamespaceField as Type
+			);
+		}
+
+		if (nestedNamespaceField instanceof Service) {
+			getTypesContainer.resolvers =
+				`const messages = require("./${nestedNamespaceField.name.toLocaleLowerCase()}_service_pb");
+` + getTypesContainer.resolvers;
+
+			const classDeclaration: ClassDeclarationArgs = {
+				serviceName: nestedNamespaceField.name,
+				methods: []
+			};
+
+			const serviceClientArgs: ServiceClientArgs = {
+				serviceName: nestedNamespaceField.name,
+				methods: []
+			};
+
+			nestedNamespaceField.methodsArray.forEach(m => {
+				const classMethod: ClassDeclarationMethod = {
+					methodName: m.name,
+					requestType: m.requestType,
+					responseType: m.responseType
+				};
+				classDeclaration.methods.push(classMethod);
+
+				const clientMethod: ClientMethodArgs = {
+					methodName: m.name,
+					requestTypeName: m.requestType,
+					responseTypeName: m.responseType
+				};
+				serviceClientArgs.methods.push(clientMethod);
+			});
+
+			clientDeclaration +=
+				`import * as types from "./types";
+` + printClassDeclaration(classDeclaration);
+
+			clientImplementation += format(
+				printServiceClient(serviceClientArgs),
+				{
+					tabWidth: 4,
+					useTabs: true
 				}
-			});
-
-			const clientOptionsIpField = new TsField();
-			clientOptionsIpField.fieldName = "ip";
-			clientOptionsIpField.fieldType = TsString;
-
-			const clientOptionsPortField = new TsField();
-			clientOptionsPortField.fieldName = "port";
-			clientOptionsPortField.fieldType = TsNumber;
-
-			const clientOptions = new TsInterface();
-			clientOptions.name = "ClientOptions";
-			clientOptions.exported = true;
-			clientOptions.fields = [
-				clientOptionsIpField,
-				clientOptionsPortField
-			];
-
-			const clientOptionsType = new TsFieldType();
-			clientOptionsType.isBasicType = false;
-			clientOptionsType.customFieldType = clientOptions;
-
-			const clientOptionsField = new TsField();
-			clientOptionsField.fieldName = "args";
-			clientOptionsField.fieldType = clientOptionsType;
-
-			const methodDeclaration = new TsMethodDeclaration();
-			methodDeclaration.name = "constructor";
-			methodDeclaration.args.push(clientOptionsField);
-
-			serviceClass.methods.push(methodDeclaration);
-
-			namespace.nestedArray.forEach(nestedNamespaceField => {
-				if (nestedNamespaceField instanceof Service) {
-					serviceClass.name = nestedNamespaceField.name;
-					serviceClass.exported = true;
-					nestedNamespaceField.methodsArray.forEach(method => {
-						const responseType = types.get(method.responseType);
-						const requestType = types.get(method.requestType);
-
-						const returnFieldType = new TsFieldType();
-						returnFieldType.isBasicType = false;
-						returnFieldType.customFieldType = responseType;
-
-						const requestFieldType = new TsFieldType();
-						requestFieldType.isBasicType = false;
-						requestFieldType.customFieldType = requestType;
-
-						const methodDeclaration = new TsMethodDeclaration();
-						methodDeclaration.name = method.name;
-						methodDeclaration.returnValueType = returnFieldType;
-
-						const argsField = new TsField();
-						argsField.fieldName = "args";
-						argsField.fieldType = requestFieldType;
-
-						methodDeclaration.args.push(argsField);
-
-						serviceClass.methods.push(methodDeclaration);
-					});
-				}
-			});
-
-			const tsFile = new TsFile();
-
-			tsFile.renderables.push(serviceClass);
-
-			tsFile.renderables.push(clientOptions);
-
-			types.forEach(value => {
-				tsFile.renderables.push(value);
-			});
-
-			writeFileSync("testi.ts", tsFile.render());
-		});
+			);
+		}
 	});
 
-const servicePath = resolve(__dirname, "seppo", "seppo_service.proto");
-
-ParseProto(servicePath);
-
-console.log("rootpath", __dirname);
+	return {
+		clientDeclaration,
+		clientImplementation,
+		types: getTypesContainer.types,
+		resolvers: getTypesContainer.resolvers,
+		enumObjects: getTypesContainer.jsEnums
+	};
+};
