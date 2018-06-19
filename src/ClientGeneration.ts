@@ -13,8 +13,8 @@ export const printRequirePackages = (args: {
 	serviceNameLockerCase: string;
 }) => {
 	return `const grpc = require("grpc");
-const service = require("./${args.serviceNameLockerCase}_service_grpc_pb");
-const messages = require("./${args.serviceNameLockerCase}_service_pb");
+const service = require("./${args.serviceNameLockerCase.toLowerCase()}_service_grpc_pb");
+const messages = require("./${args.serviceNameLockerCase.toLowerCase()}_service_pb");
 const resolvers = require("./resolvers");`;
 };
 

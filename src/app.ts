@@ -3,10 +3,10 @@
 import { load } from "protobufjs";
 
 import { parseProto } from "./parseProto";
-import { resolve, join } from "path";
+import { join } from "path";
 import { writeFileSync } from "fs";
 
-const servicePath = resolve(__dirname, "seppo", "seppo_service.proto");
+// const servicePath = resolve(__dirname, "seppo", "seppo_service.proto");
 
 let inputServicePath = "";
 let outputDir = "";

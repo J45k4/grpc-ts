@@ -1,5 +1,4 @@
 import {
-	InterfaceField,
 	InterfaceType,
 	printInterface,
 	EnumType,

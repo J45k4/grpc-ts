@@ -1,7 +1,6 @@
 import {
 	printRequirePackages,
 	printClientConstructor,
-	printClientMethod,
 	printServiceClient
 } from "./ClientGeneration";
 import { format } from "prettier";
@@ -33,31 +32,6 @@ it("Should print client constructor", () => {
 			serviceName: "User"
 		})
 	).toBe(expected);
-});
-
-it("Should print client method", () => {
-	const r = printClientMethod({
-		methodName: "createUser",
-		requestTypeName: "CreateUserRequest",
-		responseTypeName: "CreateUserResponse"
-	});
-
-	const expected = `createUser(args) {
-		return new Promise((resolve, reject) => {
-			const req = resolvers.resolveRequestCreateUserRequest(args);
-
-			this.client.createUser(req, (err, res) => {
-				if (err) {
-					return reject(err);
-				}
-				return resolve(resolvers.resolveResponseCreateUserResponse(res));
-			})
-		})
-	}`;
-
-	//expect(r).toBe(expected);
-
-	console.log(r);
 });
 
 it("Should print client", () => {

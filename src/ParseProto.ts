@@ -1,6 +1,4 @@
-import { load, Root, Namespace, Type, Service, Field, Enum } from "protobufjs";
-import { resolve } from "path";
-import { writeFileSync, appendFileSync, writeFile } from "fs";
+import { Root, Namespace, Type, Service, Enum } from "protobufjs";
 import {
 	printRequestTypeResolver,
 	RequestTypeResolverField,
@@ -22,11 +20,9 @@ import {
 } from "./TypesGeneration";
 import {
 	ClassDeclarationArgs,
-	printClassDeclarationMethod,
 	ClassDeclarationMethod,
 	printClassDeclaration
 } from "./ClientDeclarationGenerator";
-import { TsEnumField } from "./TsEnum";
 import {
 	ServiceClientArgs,
 	ClientMethodArgs,
@@ -183,10 +179,10 @@ export const getTypes = (
 			container.resolvers += printRequestEnumResolver(type.name);
 			container.resolvers += printResponseEnumResolver(type.name);
 
-			const responseResolver: ResponseTypeResolverArgs = {
-				responseType: newTypeName,
-				fields: []
-			};
+			// const responseResolver: ResponseTypeResolverArgs = {
+			// 	responseType: newTypeName,
+			// 	fields: []
+			// };
 
 			Object.keys(type.values).forEach(key => {
 				const enumKey = key;

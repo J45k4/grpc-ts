@@ -28,14 +28,14 @@ export const printRequestTypeResolverField = (
 
 	if (args.isListType) {
 		return `if (input.${args.fieldName}) {
-			req.set${args.fieldName}List(input.fieldName.map(p => resolvers.resolveRequest${
-			args.typeName
-		}(p)));
+			req.set${capitilizeOnlyFirstLetter(args.fieldName)}List(input.${
+			args.fieldName
+		}.map(p => exports.resolveRequest${args.typeName}(p)));
 		}`;
 	}
 
 	return `if (input.${args.fieldName}) {
-		req.set${capitilizeOnlyFirstLetter(args.fieldName)}(resolvers.resolveRequest${
+		req.set${capitilizeOnlyFirstLetter(args.fieldName)}(exports.resolveRequest${
 		args.typeName
 	}(input.${args.fieldName}));
 	}`;
