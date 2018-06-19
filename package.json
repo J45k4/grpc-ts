@@ -1,6 +1,6 @@
 {
 	"name": "grpc-ts",
-	"version": "0.0.37",
+	"version": "0.0.38",
 	"description": "",
 	"main": "app.js",
 	"bin": {
@@ -33,7 +33,11 @@
 	"files": [
 		"dist"
 	],
-	"author": "",
+	"repository": {
+		"type": "github",
+		"url": "https://github.com/J45k4/grpc-ts"
+	},
+	"author": "Jaska",
 	"license": "MIT",
 	"jest": {
 		"transform": {
