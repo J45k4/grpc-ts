@@ -1,14 +1,17 @@
 {
-	"name": "markus",
-	"version": "0.0.32",
+	"name": "grpc-ts",
+	"version": "0.0.37",
 	"description": "",
 	"main": "app.js",
 	"bin": {
-		"pncg": "./dist/app.js"
+		"grpc-ts": "./dist/app.js"
 	},
 	"scripts": {
-		"test": "jest",
+		"test": "npm run lint && jest",
 		"build": "tsc -p tsconfig.json",
+		"lint": "tslint -p tslint.json",
+		"lint-fix": "tslint -p tslint.json --fix",
+		"watch": "tsc -w -p tsconfig.json",
 		"prepublish": "npm run build && npm run bump-patch",
 		"bump-patch": "npm version --no-git-tag-version patch",
 		"bump-minor": "npm version --no-git-tag-version minor",
@@ -20,13 +23,16 @@
 		"prettier": "^1.11.1"
 	},
 	"devDependencies": {
-		"typescript": "^2.8.1",
-		"ts-jest": "^22.4.2",
 		"@types/jest": "^22.2.2",
+		"@types/prettier": "^1.10.0",
 		"@types/protobufjs": "^6.0.0",
-		"@types/prettier": "^1.10.0"
+		"ts-jest": "^22.4.6",
+		"tslint": "^5.10.0",
+		"typescript": "^2.8.1"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"author": "",
 	"license": "MIT",
 	"jest": {
@@ -34,6 +40,13 @@
 			"^.+\\.tsx?$": "ts-jest"
 		},
 		"testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-		"moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
+		"moduleFileExtensions": [
+			"ts",
+			"tsx",
+			"js",
+			"jsx",
+			"json",
+			"node"
+		]
 	}
 }
