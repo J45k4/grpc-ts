@@ -2,7 +2,7 @@
 
 import { load } from "protobufjs";
 
-import { parseProto } from "./parseProto";
+import { parseProto } from "./ParseProto";
 import { join } from "path";
 import { writeFileSync } from "fs";
 
