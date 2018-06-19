@@ -1,4 +1,4 @@
-# grpc-ts
+# grpc-ts [![Build Status](https://travis-ci.org/J45k4/grpc-ts.svg?branch=master)](https://travis-ci.org/J45k4/grpc-ts)
 
 grpc-ts can be used to create typescript definitions for grpc service.
 
